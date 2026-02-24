@@ -1,31 +1,32 @@
 @use "/src/styles/_styles.scss" as *;
+@use "/src/styles/function" as *;
 
 .signup-section {
-  height: 100%;
-  @include flex-center;
+    height: 100%;
+    @include flex-center;
 
-  .signup-article {
-    width: 600px;
-    display: flex;
-    flex-direction: column;
+    .signup-article {
+        width: rem(600px);
+        display: flex;
+        flex-direction: column;
 
-    h2 {
-      margin-bottom: 30px;
+        h2 {
+            margin-bottom: rem(30px);
+        }
+
+        form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: rem(30px);
+
+            input {
+                height: rem(60px);
+            }
+
+            button {
+                height: rem(60px);
+            }
+        }
     }
-
-    form {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 30px;
-
-      input {
-        height: 60px;
-      }
-
-      button {
-        height: 60px;
-      }
-    }
-  }
 }

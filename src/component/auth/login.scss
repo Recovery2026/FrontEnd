@@ -1,32 +1,33 @@
 @use "/src/styles/styles" as *;
+@use "/src/styles/function" as *;
 
 .login-section {
     height: 100%;
     @include flex-center;
 
     .login-article {
-        width: 600px;
+        width: rem(600px);
         display: flex;
         flex-direction: column;
-        gap: 30px;
-        padding: 20px;
+        gap: rem(30px);
+        padding: rem(20px);
 
         h2 {
-            margin-bottom: 30px;
+            margin-bottom: rem(30px);
         }
 
         form {
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 30px;
+            gap: rem(30px);
 
             input {
-                height: 60px;
+                height: rem(60px);
             }
 
             button {
-                height: 60px;
+                height: rem(60px);
             }
         }
 
@@ -36,29 +37,29 @@
             justify-content: space-between;
 
             a {
-                font-size: 24px;
+                font-size: rem(24px);
                 color: $black-color;
                 text-decoration: none;
             }
         }
 
         .kakao-login-btn {
-            height: 60px;
-            border-radius: 12px;
+            height: rem(60px);
+            border-radius: rem(12px);
             background-color: $kakao-background-color;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0 28px;
+            padding: 0 rem(28px);
 
             img {
-                width: 36px;
-                height: 36px;
+                width: rem(36px);
+                height: rem(36px);
             }
 
             span {
                 flex: 1;
-                font-size: 30px;
+                font-size: rem(30px);
                 color: $kakao-text-color;
                 text-decoration: none;
             }
