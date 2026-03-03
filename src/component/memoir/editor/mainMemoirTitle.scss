@@ -1,0 +1,22 @@
+@use "/src/styles/function" as *;
+@use "/src/styles/styles" as *;
+
+.title-div {
+    display: flex;
+    flex-direction: column;
+    gap: rem(5px);
+
+    .main-title {
+        @include flex-center;
+        height: rem(60px);
+        text-align: center;
+        border: $border;
+    }
+
+    .sub-title-div {
+        display: flex;
+        flex-direction: column;
+        margin-left: rem(98px);
+        gap: rem(5px);
+    }
+}

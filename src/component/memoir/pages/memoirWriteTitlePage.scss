@@ -1,0 +1,25 @@
+@use "/src/styles/styles" as *;
+@use "/src/styles/function" as *;
+
+.memoir-section {
+    @include flex-center;
+    flex-direction: column;
+
+    .memoir-edit-title {
+        margin-top: rem(40px);
+        font-size: $title-font-size;
+    }
+
+    .btn-footer {
+        display: flex;
+        margin-top: rem(30px);
+        width: 100%;
+        max-width: rem(1270px);
+        min-width: rem(800px);
+        justify-content: flex-end;
+
+        .improvement-btn {
+            @include btn-solid($secondary-color);
+        }
+    }
+}

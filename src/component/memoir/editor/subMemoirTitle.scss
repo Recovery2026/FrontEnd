@@ -1,0 +1,9 @@
+@use "/src/styles/styles" as *;
+@use "/src/styles/function" as *;
+
+.sub-title {
+    @include flex-center;
+    border: $border;
+    height: rem(60px);
+    text-align: center;
+}

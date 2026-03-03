@@ -4,9 +4,10 @@ import "./styles/index.scss";
 import { Route, Routes } from "react-router-dom";
 import SideBar from "./component/common/sideBar.tsx";
 import Login from "./component/auth/login.tsx";
-import MemoirsList from "./component/memoirs/memoirsList.tsx";
+import MemoirsList from "./component/memoir/memoirsList.tsx";
 import SignUp from "./component/auth/signup.tsx";
 import User from "./component/user/user.tsx";
+import MemoirWriteTitlePage from "./component/memoir/pages/memoirWriteTitlePage.tsx";
 
 function App() {
     return (
@@ -19,6 +20,7 @@ function App() {
                     <Route element={<SideBar />}>
                         <Route path={"/"} element={<MemoirsList />} />
                         <Route path={"/user"} element={<User />} />
+                        <Route path={"/memoir"} element={<MemoirWriteTitlePage />} />
                     </Route>
                 </Routes>
             </React.Suspense>

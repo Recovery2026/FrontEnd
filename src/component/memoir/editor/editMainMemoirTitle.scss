@@ -1,0 +1,12 @@
+@use "/src/styles/function" as *;
+
+.edit-text {
+    border: none;
+    width: 100%;
+    height: rem(60px);
+    text-align: center;
+}
+
+input:focus::placeholder {
+    color: transparent;
+}
