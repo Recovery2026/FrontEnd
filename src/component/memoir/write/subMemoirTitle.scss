@@ -4,6 +4,6 @@
 .sub-title {
     @include flex-center;
     border: $border;
-    height: rem(60px);
+    min-height: rem(60px);
     text-align: center;
 }

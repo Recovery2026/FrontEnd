@@ -1,18 +1,12 @@
 import "./mainMemoirTitle.scss";
-import type { MainTitleItem, SubTitleItem } from "../common/memoir.types";
+import type { SubTitleItem } from "../common/memoir.types";
 import SubMemoirTitle from "./subMemoirTitle";
 import EditSubTitle from "./editSubMemoirTitle";
-import { findMainTitleById } from "../common/memoir.utils";
+import { useMainTitleItemStore } from "../common/useMainTitleItemStore";
 
-type MainMemoirTitleProps = {
-    id: number;
-    titleItems: MainTitleItem[];
-    setTitleItems: React.Dispatch<React.SetStateAction<MainTitleItem[]>>;
-};
-
-const MainMamoirTitle = (props: MainMemoirTitleProps) => {
-    const { id, titleItems, setTitleItems } = props;
-    const mainTitleItem = findMainTitleById(titleItems, id);
+const MainMamoirTitle = (props: { id: number; editable: boolean }) => {
+    const { id, editable } = props;
+    const mainTitleItem = useMainTitleItemStore((state) => state.mainTitleItems[id]);
     const { title, subMemoirTitles } = mainTitleItem;
 
     return (
@@ -23,7 +17,7 @@ const MainMamoirTitle = (props: MainMemoirTitleProps) => {
                 {subMemoirTitles.map((subMemoirTitle: SubTitleItem, idx: number) => {
                     return <SubMemoirTitle key={idx} title={subMemoirTitle.title} />;
                 })}
-                <EditSubTitle mainTitleId={id} mainTitleItems={titleItems} setMainTitleItem={setTitleItems} />
+                {editable && <EditSubTitle mainTitleId={id} />}
             </div>
         </div>
     );

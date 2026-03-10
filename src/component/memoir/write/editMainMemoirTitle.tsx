@@ -1,26 +1,21 @@
-import type { MainTitleItem } from "../common/memoir.types";
 import "./editMainMemoirTitle.scss";
-import { addMainTitle } from "../common/memoir.utils";
+import { useMainTitleItemStore } from "../common/useMainTitleItemStore";
 
-type EditMemoirProps = {
-    memoirTitles: MainTitleItem[];
-    setMemoirTitles: React.Dispatch<React.SetStateAction<MainTitleItem[]>>;
-};
-
-const EditMainMemoirTitle = (props: EditMemoirProps) => {
-    const { memoirTitles, setMemoirTitles } = props;
+const EditMainMemoirTitle = () => {
+    const { mainTitleItems, addMainTitle } = useMainTitleItemStore();
 
     const handleEnterEvent = (e: React.KeyboardEvent<HTMLInputElement>) => {
         const title = e.currentTarget.value;
 
         if (e.key === "Enter" && title.length > 0) {
-            setMemoirTitles(addMainTitle(memoirTitles, title));
+            addMainTitle(title);
             e.currentTarget.value = "";
         }
     };
 
     return (
         <div>
+            {mainTitleItems.length > 0 && <hr />}
             <input
                 type="text"
                 className="edit-text"

@@ -1,20 +1,18 @@
-import type { MainTitleItem } from "../common/memoir.types";
-import { addSubTitle } from "../common/memoir.utils";
+import { useMainTitleItemStore } from "../common/useMainTitleItemStore";
 
 type EditSubTitleProps = {
     mainTitleId: number;
-    mainTitleItems: MainTitleItem[];
-    setMainTitleItem: React.Dispatch<React.SetStateAction<MainTitleItem[]>>;
 };
 
 const EditSubTitle = (props: EditSubTitleProps) => {
-    const { mainTitleId, mainTitleItems, setMainTitleItem } = props;
+    const { mainTitleId } = props;
+    const { addSubTitle } = useMainTitleItemStore();
 
     const handleEnterEvent = (e: React.KeyboardEvent<HTMLInputElement>) => {
         const title = e.currentTarget.value;
 
         if (e.key === "Enter" && title.length > 0) {
-            setMainTitleItem(addSubTitle(mainTitleItems, title, mainTitleId));
+            addSubTitle(mainTitleId, title);
             e.currentTarget.value = "";
         }
     };

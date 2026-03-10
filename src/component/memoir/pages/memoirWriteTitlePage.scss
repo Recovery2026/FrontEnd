@@ -10,9 +10,21 @@
         font-size: $title-font-size;
     }
 
+    .memoir-box {
+        display: flex;
+        flex-direction: column;
+        gap: rem(10px);
+
+        .memoir-title {
+            width: 100%;
+            text-align: left;
+            margin-top: rem(40px);
+        }
+    }
+
     .btn-footer {
         display: flex;
-        margin-top: rem(30px);
+        margin-top: rem(60px);
         width: 100%;
         max-width: rem(1270px);
         min-width: rem(800px);
@@ -20,6 +32,24 @@
 
         .improvement-btn {
             @include btn-solid($secondary-color);
+        }
+    }
+
+    .progress-circles {
+        display: flex;
+        flex-direction: row;
+        margin-top: rem(10px);
+        gap: rem(5px);
+
+        div {
+            width: rem(10px);
+            height: rem(10px);
+            border: rem(1px) solid gray;
+            border-radius: rem(10px);
+        }
+
+        .first-circle {
+            background-color: gray;
         }
     }
 }

@@ -1,0 +1,79 @@
+@use "/src/styles/styles" as *;
+@use "/src/styles/function" as *;
+
+.improvement-section {
+    @include flex-center;
+    flex-direction: column;
+
+    .memoir-improvement-title {
+        margin-top: rem(40px);
+        font-size: $title-font-size;
+    }
+
+    .memoir-title {
+        width: 100%;
+        text-align: left;
+    }
+
+    .improvement-box {
+        display: flex;
+        flex-direction: row;
+        gap: rem(10px);
+        margin-top: rem(40px);
+
+        .left-box {
+            display: flex;
+            flex-direction: column;
+            gap: rem(10px);
+        }
+
+        .right-box {
+            display: flex;
+            flex-direction: column;
+            gap: rem(10px);
+        }
+
+        .improvement-editor {
+            width: rem(625px);
+            height: rem(562px);
+            border: rem(1px) solid black;
+            resize: none;
+        }
+    }
+
+    .progress-circles {
+        display: flex;
+        flex-direction: row;
+        margin-top: rem(10px);
+        gap: rem(5px);
+
+        div {
+            width: rem(10px);
+            height: rem(10px);
+            border: rem(1px) solid gray;
+            border-radius: rem(10px);
+        }
+
+        .second-circle {
+            background-color: gray;
+        }
+    }
+
+    .btn-footer {
+        display: flex;
+        margin-top: rem(60px);
+        width: 100%;
+        max-width: rem(1270px);
+        min-width: rem(800px);
+        justify-content: flex-end;
+        gap: rem(5px);
+
+        .previous-btn {
+            @include btn-solid($secondary-color);
+        }
+
+        .improvement-btn {
+            @include btn-solid($secondary-color);
+        }
+    }
+}
