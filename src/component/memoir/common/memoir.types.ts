@@ -19,6 +19,7 @@ type MemoirState = {
     mainTitleIds: string[];
     mainTitlesById: Record<string, MainTitleItem>;
     subTitlesById: Record<string, SubTitleItem>;
+    dateById: Record<string, string>;
 };
 
 type AddMainTitlePayload = {

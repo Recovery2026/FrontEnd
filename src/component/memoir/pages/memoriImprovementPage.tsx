@@ -1,13 +1,13 @@
 import "./memoirImprovementPage.scss";
 import MemoirTitleList from "../write/memoirTitleList";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useImprovementItemStore } from "../common/useMainTitleItemStore.ts";
 import type { TitleTargetPayload } from "../common/memoir.types.ts";
 
 const MemoirImprovementPage = () => {
     const [feedbackCnt] = useState(0);
-    const { improvementsById, subImprovementsById } = useImprovementItemStore();
+    const { improvementsById, subImprovementsById, saveImprovement } = useImprovementItemStore();
     const [improvementContent, setImprovementContent] = useState<string>("");
     const [selectedTitleId, setSelectedTitleId] = useState<string | null>(null);
 
@@ -22,48 +22,65 @@ const MemoirImprovementPage = () => {
         console.log(id);
     };
 
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            if (selectedTitleId && improvementContent) {
+                saveImprovement(selectedTitleId, improvementContent);
+                console.log(`개선점 자동 저장: ${selectedTitleId}`);
+            }
+        }, 10000);
+
+        return () => clearInterval(intervalId);
+    }, [selectedTitleId, improvementContent, saveImprovement]);
+
     return (
-        <section className={"improvement-section"}>
-            <h2 className={"memoir-improvement-title"}>느낀점이나 개선점이 있나요?</h2>
-            <span>이런 상황은 어떻게 해결할 수 있을까요 편하게 이야기해주세요</span>
-            <div className={"improvement-box"}>
-                <div className={"left-box"}>
-                    <div className="memoir-title">
-                        <span>오늘 내게 있었던 일</span>
-                    </div>
-                    <MemoirTitleList
-                        editable={false}
-                        width={"625px"}
-                        selectHook={(payload) => handleItemClick(payload)}
-                        selectedTitleId={selectedTitleId}
-                    />
-                </div>
-                <div className={"right-box"}>
-                    <div className="memoir-title">
-                        <span>개선점</span>
-                    </div>
-                    <textarea
-                        placeholder="개선점을 입력해주세요"
-                        className={"improvement-editor"}
-                        value={improvementContent}
-                        onChange={(e) => setImprovementContent(e.currentTarget.value)}
-                    />
-                </div>
-            </div>
+        <section className={"memoir-section"}>
+            <article className={"memoir-top"}>
+                <h2 className={"memoir-main-title"}>느낀점이나 개선점이 있나요?</h2>
+                <span>이런 상황은 어떻게 해결할 수 있을까요 편하게 이야기해주세요</span>
+            </article>
 
-            <div className="progress-circles">
-                <div className="first-circle"></div>
-                <div className="second-circle"></div>
-            </div>
+            <article className={"memoir-middle"}>
+                <div className={"content-box"}>
+                    <div className={"sub-box"}>
+                        <span className={"sub-title"}>오늘 내게 있었던 일</span>
+                        <MemoirTitleList
+                            editable={false}
+                            selectHook={(payload) => handleItemClick(payload)}
+                            selectedTitleId={selectedTitleId}
+                        />
+                    </div>
+                    <div className={"sub-box"}>
+                        <span className="sub-title">개선점</span>
+                        <textarea
+                            placeholder="개선점을 입력해주세요"
+                            className={"memoir-container"}
+                            value={improvementContent}
+                            onChange={(e) => setImprovementContent(e.currentTarget.value)}
+                        />
+                    </div>
+                </div>
+                <div className="progress-circles">
+                    <div className="improvement-first-circle"></div>
+                    <div className="improvement-second-circle"></div>
+                </div>
+            </article>
 
-            <div className={"btn-footer"}>
+            <article className={"memoir-bottom"}>
                 <Link to="/memoir/write">
-                    <button className={"previous-btn"}>이전</button>
+                    <button className={"memoir-btn"}>이전</button>
                 </Link>
                 <Link to="/memoir/feedback">
-                    <button className={"feedback-btn"}>피드백 받기({feedbackCnt}/5)</button>
+                    <button
+                        className={"memoir-btn"}
+                        onClick={() => {
+                            saveImprovement(selectedTitleId!, improvementContent);
+                        }}
+                    >
+                        피드백 받기({feedbackCnt}/5)
+                    </button>
                 </Link>
-            </div>
+            </article>
         </section>
     );
 };

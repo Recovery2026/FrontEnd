@@ -10,7 +10,7 @@ import type {
     UpdateTitlePayload,
 } from "./memoir.types";
 
-type LegacyMainTitleItem = {
+type MainTitleItemLegacy = {
     title: string;
     subMemoirTitles: Record<string, { title: string }>;
 };
@@ -20,26 +20,44 @@ type LegacyImprovementItem = {
     subImprovements: Record<string, { improvement: string }>;
 };
 
-const data: Record<string, LegacyMainTitleItem> = {
-    1: {
-        title: "2026/01/01 회고 - 오늘 공부한 것",
-        subMemoirTitles: {
-            1: {
-                title: "TSX란?",
+type ApiMemoirResponse = {
+    list: Array<{
+        date: string;
+        id: number;
+        memoir: Record<string, MainTitleItemLegacy>;
+    }>;
+    total: number;
+};
+
+const data: ApiMemoirResponse = {
+    list: [
+        {
+            date: "2026-04-23T04:40:25.134587Z",
+            id: 1,
+            memoir: {
+                "1": {
+                    title: "2026/01/01 회고 - 오늘 공부한 것",
+                    subMemoirTitles: {
+                        "1": {
+                            title: "TSX란?",
+                        },
+                    },
+                },
+                "2": {
+                    title: "2026/03/09 회고 - 오늘의 나의 일기",
+                    subMemoirTitles: {
+                        "1": {
+                            title: "문구점을 갔다.",
+                        },
+                        "2": {
+                            title: "산책을 갔다.",
+                        },
+                    },
+                },
             },
         },
-    },
-    2: {
-        title: "2026/03/09 회고 - 오늘의 나의 일기",
-        subMemoirTitles: {
-            1: {
-                title: "문구점을 갔다.",
-            },
-            2: {
-                title: "산책을 갔다.",
-            },
-        },
-    },
+    ],
+    total: 1,
 };
 
 const improvementData: Record<string, LegacyImprovementItem> = {
@@ -53,10 +71,19 @@ const improvementData: Record<string, LegacyImprovementItem> = {
     },
 };
 
-const normalizeInitialData = (legacyData: Record<number, LegacyMainTitleItem>): MemoirState => {
+const normalizeInitialData = (apiData: ApiMemoirResponse): MemoirState => {
     const mainTitleIds: string[] = [];
     const mainTitlesById: Record<string, MainTitleItem> = {};
     const subTitlesById: Record<string, SubTitleItem> = {};
+    const dateById: Record<string, string> = {};
+
+    // 첫 번째 memoir 데이터 사용
+    if (apiData.list.length === 0) {
+        return { mainTitleIds, mainTitlesById, subTitlesById, dateById };
+    }
+
+    const memoirData = apiData.list[0];
+    const legacyData = memoirData.memoir;
 
     for (const id in legacyData) {
         const mainItem = legacyData[id];
@@ -67,6 +94,8 @@ const normalizeInitialData = (legacyData: Record<number, LegacyMainTitleItem>): 
             title: mainItem.title,
             subTitleIds: subIds,
         };
+
+        dateById[id] = memoirData.date;
 
         for (const subId in mainItem.subMemoirTitles) {
             const sid = `${id}-${subId}`;
@@ -81,7 +110,7 @@ const normalizeInitialData = (legacyData: Record<number, LegacyMainTitleItem>): 
         mainTitleIds.push(id);
     }
 
-    return { mainTitleIds, mainTitlesById, subTitlesById };
+    return { mainTitleIds, mainTitlesById, subTitlesById, dateById };
 };
 
 const normalizeImprovementData = (legacyData: Record<number, LegacyImprovementItem>) => {
@@ -111,6 +140,7 @@ type MainTitleItemStore = {
     mainTitleIds: string[];
     mainTitlesById: Record<string, MainTitleItem>;
     subTitlesById: Record<string, SubTitleItem>;
+    dateById: Record<string, string>;
     addTitle: (payload: AddTitlePayload) => void;
     deleteTitle: (payload: TitleTargetPayload) => void;
     updateTitle: (payload: UpdateTitlePayload) => void;
@@ -120,6 +150,7 @@ type ImprovementItemStore = {
     improvementsById: Record<string, { improvement: string }>;
     subImprovementsById: Record<string, { improvement: string }>;
     setImprovement: (payload: SetImprovementPayLoad) => void;
+    saveImprovement: (id: string, improvement: string) => void;
 };
 
 export const useMainTitleItemStore = create<MainTitleItemStore>()(
@@ -208,6 +239,18 @@ export const useImprovementItemStore = create<ImprovementItemStore>()(
                 }
 
                 state.subImprovementsById[payload.id] = { improvement: payload.improvement };
+            }),
+        saveImprovement: (id: string, improvement: string) =>
+            set((state) => {
+                // id에 "-"가 있으면 SUB, 없으면 MAIN
+                const kind: "MAIN" | "SUB" = id.includes("-") ? "SUB" : "MAIN";
+
+                if (kind === "MAIN") {
+                    state.improvementsById[id] = { improvement };
+                    return;
+                }
+
+                state.subImprovementsById[id] = { improvement };
             }),
     })),
 );

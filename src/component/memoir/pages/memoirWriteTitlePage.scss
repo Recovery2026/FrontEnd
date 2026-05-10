@@ -1,58 +1,65 @@
 @use "/src/styles/styles" as *;
 @use "/src/styles/function" as *;
+@use "/src/component/memoir/memoirStyle" as *;
 
 .memoir-section {
     @include flex-center;
     flex-direction: column;
     height: 100vh;
+    padding: 0 rem(175px);
+    gap: rem(30px);
 
-    .memoir-edit-title {
+    .memoir-top {
         margin-top: rem(40px);
-        font-size: $title-font-size;
+        .memoir-main-title {
+            font-size: $title-font-size;
+        }
     }
 
-    .memoir-box {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
+    .memoir-middle {
+        @include column-flex-box;
+        width: 100%;
         gap: rem(10px);
         min-height: 0;
 
-        .memoir-title {
+        .sub-title {
             width: 100%;
             text-align: left;
-            margin-top: rem(40px);
+        }
+
+        .progress-circles {
+            display: flex;
+            justify-content: center;
+            flex-direction: row;
+            margin-top: rem(10px);
+            gap: rem(5px);
+
+            div {
+                width: rem(10px);
+                height: rem(10px);
+                border: rem(1px) solid gray;
+                border-radius: rem(10px);
+            }
+
+            .memoir-first-circle {
+                background-color: gray;
+            }
         }
     }
 
-    .btn-footer {
+    .memoir-bottom {
         display: flex;
-        margin-top: rem(60px);
-        width: rem(1270px);
-        height: rem(80px);
+        width:100%;
+        height: rem(120px);
         justify-content: flex-end;
+        align-items: center;
+        gap: rem(10px);
 
-        .improvement-btn {
-            @include btn-solid($secondary-color);
-        }
-    }
-
-    .progress-circles {
-        display: flex;
-        justify-content: center;
-        flex-direction: row;
-        margin-top: rem(10px);
-        gap: rem(5px);
-
-        div {
-            width: rem(10px);
-            height: rem(10px);
-            border: rem(1px) solid gray;
+        .memoir-btn {
+            width: rem(200px);
+            height: rem(40px);
+            font-size: rem(15px);
             border-radius: rem(10px);
-        }
-
-        .first-circle {
-            background-color: gray;
         }
     }
 }

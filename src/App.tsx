@@ -10,6 +10,7 @@ import User from "./component/user/user.tsx";
 import MemoirWriteTitlePage from "./component/memoir/pages/memoirWriteTitlePage.tsx";
 import MemoirImprovementPage from "./component/memoir/pages/memoriImprovementPage.tsx";
 import MemoirsCalender from "./component/memoir/memoirsCalender.tsx";
+import MemoirFeedbackPage from "./component/memoir/pages/memoirFeedbackPage.tsx";
 
 function App() {
     return (
@@ -25,6 +26,7 @@ function App() {
                         <Route path={"/profile/edit"} element={<User />} />
                         <Route path={"/memoir/write"} element={<MemoirWriteTitlePage />} />
                         <Route path={"/memoir/improvement"} element={<MemoirImprovementPage />} />
+                        <Route path={"/memoir/feedback"} element={<MemoirFeedbackPage />} />
                     </Route>
                 </Routes>
             </React.Suspense>

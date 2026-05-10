@@ -7,17 +7,16 @@ import type { TitleTargetPayload } from "../common/memoir.types.ts";
 
 type MemoirTitleList = {
     editable: boolean;
-    width: string;
     selectHook: (id: TitleTargetPayload) => void;
     selectedTitleId?: string | null;
 };
 
 const MemoirTitleList = (props: MemoirTitleList) => {
-    const { editable, width, selectHook, selectedTitleId } = props;
+    const { editable, selectHook, selectedTitleId } = props;
     const mainTitleIds = useMainTitleItemStore((state) => state.mainTitleIds);
 
     return (
-        <div style={{ width: width }} className="memoir-container">
+        <div className="memoir-container">
             {mainTitleIds.map((mainTitleId, idx) => (
                 <React.Fragment key={mainTitleId}>
                     <MainMemoirTitle

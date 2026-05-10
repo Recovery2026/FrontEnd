@@ -1,0 +1,39 @@
+@use "/src/styles/styles" as *;
+@use "/src/styles/function" as *;
+@use "/src/component/memoir/memoirStyle" as *;
+
+.memoir-section {
+    .memoir-middle {
+        .content-box {
+            .left-box {
+              @include column-flex-box;
+              gap: rem(10px);
+            }
+
+            .right-box {
+                @include column-flex-box;
+                gap: rem(10px);
+
+                .improvement-view-box {
+                    @include column-flex-box;
+
+                    .feedback-improvement-textarea {
+                      margin-top: rem(10px);
+                      flex: 1;
+                      resize: none;
+                    }
+                }
+
+                .feedback-box {
+                    @include column-flex-box;
+
+                    .ai-feedback-textarea {
+                      margin-top: rem(10px);
+                      flex: 1;
+                      resize: none;
+                    }
+                }
+            }
+        }
+    }
+}
