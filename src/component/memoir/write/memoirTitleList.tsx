@@ -5,18 +5,19 @@ import { useMainTitleItemStore } from "../common/useMainTitleItemStore.ts";
 import React from "react";
 import type { TitleTargetPayload } from "../common/memoir.types.ts";
 
-type MemoirTitleList = {
+type MemoirTitleListProps = {
     editable: boolean;
-    selectHook: (id: TitleTargetPayload) => void;
+    selectHook?: (id: TitleTargetPayload) => void;
     selectedTitleId?: string | null;
+    width?: string;
 };
 
-const MemoirTitleList = (props: MemoirTitleList) => {
-    const { editable, selectHook, selectedTitleId } = props;
+const MemoirTitleList = (props: MemoirTitleListProps) => {
+    const { editable, selectHook = () => undefined, selectedTitleId, width } = props;
     const mainTitleIds = useMainTitleItemStore((state) => state.mainTitleIds);
 
     return (
-        <div className="memoir-container">
+        <div className="memoir-container" style={width ? { width } : undefined}>
             {mainTitleIds.map((mainTitleId, idx) => (
                 <React.Fragment key={mainTitleId}>
                     <MainMemoirTitle
