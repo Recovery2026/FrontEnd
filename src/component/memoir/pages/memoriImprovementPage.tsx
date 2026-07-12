@@ -1,25 +1,68 @@
 import "./memoirImprovementPage.scss";
 import MemoirTitleList from "../write/memoirTitleList";
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useImprovementItemStore } from "../common/useMainTitleItemStore.ts";
 import type { TitleTargetPayload } from "../common/memoir.types.ts";
+import { updateMemoirImprovement } from "../../../api/memoir.api.ts";
 
 const MemoirImprovementPage = () => {
+    const navigate = useNavigate();
     const [feedbackCnt] = useState(0);
-    const { improvementsById, subImprovementsById, saveImprovement } = useImprovementItemStore();
+    const { improvementsById, subImprovementsById, saveImprovement, getImprovementData } =
+        useImprovementItemStore();
+    const memoirId = useImprovementItemStore((state) => state.memoirData?.id);
+    const setLoading = useImprovementItemStore((state) => state.setLoading);
+    const setErrorMessage = useImprovementItemStore((state) => state.setErrorMessage);
     const [improvementContent, setImprovementContent] = useState<string>("");
     const [selectedTitleId, setSelectedTitleId] = useState<string | null>(null);
 
+    const getImprovementContent = ({ id, kind }: TitleTargetPayload) => {
+        return kind === "MAIN" ? improvementsById[id]?.improvement || "" : subImprovementsById[id]?.improvement || "";
+    };
+
     const handleItemClick = (payload: TitleTargetPayload) => {
-        const { id, kind } = payload;
-        if (kind === "MAIN") {
-            setImprovementContent(improvementsById[id]?.improvement || "");
-        } else {
-            setImprovementContent(subImprovementsById[id]?.improvement || "");
+        if (selectedTitleId) {
+            saveImprovement(selectedTitleId, improvementContent);
         }
-        setSelectedTitleId(id);
-        console.log(id);
+
+        setImprovementContent(getImprovementContent(payload));
+        setSelectedTitleId(payload.id);
+    };
+
+    const handleImprovementChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const nextContent = e.currentTarget.value;
+        setImprovementContent(nextContent);
+        saveImprovement(selectedTitleId, nextContent);
+    };
+
+    const handleFeedbackClick = async () => {
+        if (!selectedTitleId) {
+            setErrorMessage("개선점을 저장할 제목을 선택해주세요.");
+            return;
+        }
+
+        if (!memoirId) {
+            setErrorMessage("저장할 회고 ID를 찾을 수 없습니다.");
+            return;
+        }
+
+        setLoading(true);
+        setErrorMessage(null);
+
+        try {
+            saveImprovement(selectedTitleId, improvementContent);
+
+            await updateMemoirImprovement(memoirId, {
+                userId: 5,
+                data: getImprovementData(),
+            });
+            navigate("/memoir/feedback");
+        } catch (error) {
+            setErrorMessage(error instanceof Error ? error.message : "Failed to save improvement.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -56,7 +99,7 @@ const MemoirImprovementPage = () => {
                             placeholder="개선점을 입력해주세요"
                             className={"memoir-container"}
                             value={improvementContent}
-                            onChange={(e) => setImprovementContent(e.currentTarget.value)}
+                            onChange={handleImprovementChange}
                         />
                     </div>
                 </div>
@@ -70,16 +113,9 @@ const MemoirImprovementPage = () => {
                 <Link to="/memoir/write">
                     <button className={"memoir-btn"}>이전</button>
                 </Link>
-                <Link to="/memoir/feedback">
-                    <button
-                        className={"memoir-btn"}
-                        onClick={() => {
-                            saveImprovement(selectedTitleId!, improvementContent);
-                        }}
-                    >
-                        피드백 받기({feedbackCnt}/5)
-                    </button>
-                </Link>
+                <button className={"memoir-btn"} onClick={() => void handleFeedbackClick()}>
+                    피드백 받기({feedbackCnt}/5)
+                </button>
             </article>
         </section>
     );

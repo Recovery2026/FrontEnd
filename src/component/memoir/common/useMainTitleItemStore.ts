@@ -2,7 +2,11 @@ import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import type {
     AddTitlePayload,
+    ApiMemoirResponse,
+    ImprovementItem,
     MainTitleItem,
+    MemoirItem,
+    MemoirResponse,
     MemoirState,
     SetImprovementPayLoad,
     SubTitleItem,
@@ -10,98 +14,120 @@ import type {
     UpdateTitlePayload,
 } from "./memoir.types";
 
-type MainTitleItemLegacy = {
-    title: string;
-    subMemoirTitles: Record<string, { title: string }>;
+type ImprovementStoreState = {
+    improvementsById: Record<string, { improvement: string }>;
+    subImprovementsById: Record<string, { improvement: string }>;
 };
 
-type LegacyImprovementItem = {
-    improvement: string;
-    subImprovements: Record<string, { improvement: string }>;
+type FeedbackStoreState = {
+    feedbacksById: Record<string, { feedback: string }>;
+    subFeedbacksById: Record<string, { feedback: string }>;
 };
 
-type ApiMemoirResponse = {
-    list: Array<{
-        date: string;
-        id: number;
-        memoir: Record<string, MainTitleItemLegacy>;
-    }>;
-    total: number;
+type MemoirWriteDataState = MemoirState &
+    ImprovementStoreState &
+    FeedbackStoreState & {
+        memoirData: MemoirResponse | null;
+        isLoading: boolean;
+        errorMessage: string | null;
+    };
+
+export type MemoirWriteStore = MemoirWriteDataState & {
+    setMemoirWriteData: (apiData: ApiMemoirResponse) => void;
+    resetMemoirWriteData: () => void;
+    setLoading: (isLoading: boolean) => void;
+    setErrorMessage: (errorMessage: string | null) => void;
+    addTitle: (payload: AddTitlePayload) => void;
+    deleteTitle: (payload: TitleTargetPayload) => void;
+    updateTitle: (payload: UpdateTitlePayload) => void;
+    setImprovement: (payload: SetImprovementPayLoad) => void;
+    saveImprovement: (id: string | null, improvement: string) => void;
+    getMemoirTitleData: () => Record<string, MemoirItem>;
+    getImprovementData: () => Record<string, ImprovementItem>;
 };
 
-const data: ApiMemoirResponse = {
-    list: [
-        {
-            date: "2026-04-23T04:40:25.134587Z",
-            id: 1,
-            memoir: {
-                "1": {
-                    title: "2026/01/01 회고 - 오늘 공부한 것",
-                    subMemoirTitles: {
-                        "1": {
-                            title: "TSX란?",
-                        },
-                    },
-                },
-                "2": {
-                    title: "2026/03/09 회고 - 오늘의 나의 일기",
-                    subMemoirTitles: {
-                        "1": {
-                            title: "문구점을 갔다.",
-                        },
-                        "2": {
-                            title: "산책을 갔다.",
-                        },
-                    },
-                },
-            },
-        },
-    ],
-    total: 1,
+const emptyMemoirData: MemoirResponse = {
+    feedback: {},
+    improvement: {},
+    memoir: {},
 };
 
-const improvementData: Record<string, LegacyImprovementItem> = {
-    1: {
-        improvement: "TSX를 공부했다.",
-        subImprovements: {
-            1: {
-                improvement: "TSX는 React 컴포넌트 정의를 위한 TypeScript기반 파일이다.",
-            },
-        },
-    },
+const initialMemoirData: MemoirResponse = {
+    feedback: {},
+    improvement: {},
+    memoir: {},
 };
 
-const normalizeInitialData = (apiData: ApiMemoirResponse): MemoirState => {
+const toMemoirResponse = (apiData: ApiMemoirResponse): MemoirResponse => {
+    if ("list" in apiData) {
+        const firstMemoir = apiData.list[0];
+
+        if (!firstMemoir) {
+            return emptyMemoirData;
+        }
+
+        return {
+            id: firstMemoir.id,
+            date: firstMemoir.date,
+            feedback: firstMemoir.feedback ?? {},
+            improvement: firstMemoir.improvement ?? {},
+            memoir: firstMemoir.memoir,
+        };
+    }
+
+    return {
+        id: apiData.id,
+        date: apiData.date,
+        feedback: apiData.feedback ?? {},
+        improvement: apiData.improvement ?? {},
+        memoir: apiData.memoir ?? {},
+    };
+};
+
+const getNextNumberId = (ids: string[]) => {
+    const maxId = ids.reduce((max, id) => {
+        const numericId = Number(id);
+        return Number.isFinite(numericId) ? Math.max(max, numericId) : max;
+    }, 0);
+
+    return String(maxId + 1);
+};
+
+const getNextSubTitleId = (mainTitle: MainTitleItem) => {
+    const maxSubId = mainTitle.subTitleIds.reduce((max, id) => {
+        const [, subId] = id.split("-");
+        const numericId = Number(subId);
+        return Number.isFinite(numericId) ? Math.max(max, numericId) : max;
+    }, 0);
+
+    return `${mainTitle.id}-${maxSubId + 1}`;
+};
+
+const normalizeTitleData = (memoirData: MemoirResponse): MemoirState => {
     const mainTitleIds: string[] = [];
     const mainTitlesById: Record<string, MainTitleItem> = {};
     const subTitlesById: Record<string, SubTitleItem> = {};
     const dateById: Record<string, string> = {};
 
-    // 첫 번째 memoir 데이터 사용
-    if (apiData.list.length === 0) {
-        return { mainTitleIds, mainTitlesById, subTitlesById, dateById };
-    }
-
-    const memoirData = apiData.list[0];
-    const legacyData = memoirData.memoir;
-
-    for (const id in legacyData) {
-        const mainItem = legacyData[id];
-        const subIds: string[] = [];
+    for (const id in memoirData.memoir) {
+        const mainItem = memoirData.memoir[id];
+        const subTitleIds: string[] = [];
 
         mainTitlesById[id] = {
             id,
             title: mainItem.title,
-            subTitleIds: subIds,
+            subTitleIds,
         };
 
-        dateById[id] = memoirData.date;
+        if (memoirData.date) {
+            dateById[id] = memoirData.date;
+        }
 
         for (const subId in mainItem.subMemoirTitles) {
-            const sid = `${id}-${subId}`;
-            subIds.push(sid);
-            subTitlesById[sid] = {
-                id: sid,
+            const normalizedSubId = `${id}-${subId}`;
+            subTitleIds.push(normalizedSubId);
+            subTitlesById[normalizedSubId] = {
+                id: normalizedSubId,
                 title: mainItem.subMemoirTitles[subId].title,
                 parentMainTitleId: id,
             };
@@ -113,53 +139,82 @@ const normalizeInitialData = (apiData: ApiMemoirResponse): MemoirState => {
     return { mainTitleIds, mainTitlesById, subTitlesById, dateById };
 };
 
-const normalizeImprovementData = (legacyData: Record<number, LegacyImprovementItem>) => {
+const normalizeImprovementData = (memoirData: MemoirResponse): ImprovementStoreState => {
     const improvementsById: Record<string, { improvement: string }> = {};
     const subImprovementsById: Record<string, { improvement: string }> = {};
 
-    for (const id in legacyData) {
-        const improvementItem = legacyData[id];
+    for (const id in memoirData.improvement) {
+        const improvementItem = memoirData.improvement[id];
         improvementsById[id] = {
             improvement: improvementItem.improvement,
         };
 
         for (const subId in improvementItem.subImprovements) {
-            const sid = `${id}-${subId}`;
-            subImprovementsById[sid] = {
+            subImprovementsById[`${id}-${subId}`] = {
                 improvement: improvementItem.subImprovements[subId].improvement,
             };
         }
     }
+
     return { improvementsById, subImprovementsById };
 };
 
-const initialState = normalizeInitialData(data);
-const initialImprovementState = normalizeImprovementData(improvementData);
+const normalizeFeedbackData = (memoirData: MemoirResponse): FeedbackStoreState => {
+    const feedbacksById: Record<string, { feedback: string }> = {};
+    const subFeedbacksById: Record<string, { feedback: string }> = {};
 
-type MainTitleItemStore = {
-    mainTitleIds: string[];
-    mainTitlesById: Record<string, MainTitleItem>;
-    subTitlesById: Record<string, SubTitleItem>;
-    dateById: Record<string, string>;
-    addTitle: (payload: AddTitlePayload) => void;
-    deleteTitle: (payload: TitleTargetPayload) => void;
-    updateTitle: (payload: UpdateTitlePayload) => void;
+    for (const id in memoirData.feedback) {
+        const feedbackItem = memoirData.feedback[id];
+        feedbacksById[id] = {
+            feedback: feedbackItem.feedback,
+        };
+
+        for (const subId in feedbackItem.subFeedback) {
+            subFeedbacksById[`${id}-${subId}`] = {
+                feedback: feedbackItem.subFeedback[subId].feedback,
+            };
+        }
+    }
+
+    return { feedbacksById, subFeedbacksById };
 };
 
-type ImprovementItemStore = {
-    improvementsById: Record<string, { improvement: string }>;
-    subImprovementsById: Record<string, { improvement: string }>;
-    setImprovement: (payload: SetImprovementPayLoad) => void;
-    saveImprovement: (id: string, improvement: string) => void;
+const normalizeMemoirWriteData = (apiData: ApiMemoirResponse): MemoirWriteDataState => {
+    const memoirData = toMemoirResponse(apiData);
+
+    return {
+        ...normalizeTitleData(memoirData),
+        ...normalizeImprovementData(memoirData),
+        ...normalizeFeedbackData(memoirData),
+        memoirData,
+        isLoading: false,
+        errorMessage: null,
+    };
 };
 
-export const useMainTitleItemStore = create<MainTitleItemStore>()(
-    immer((set) => ({
-        ...initialState,
+export const useMainTitleItemStore = create<MemoirWriteStore>()(
+    immer((set, get) => ({
+        ...normalizeMemoirWriteData(initialMemoirData),
+        setMemoirWriteData: (apiData) =>
+            set((state) => {
+                Object.assign(state, normalizeMemoirWriteData(apiData));
+            }),
+        resetMemoirWriteData: () =>
+            set((state) => {
+                Object.assign(state, normalizeMemoirWriteData(emptyMemoirData));
+            }),
+        setLoading: (isLoading) =>
+            set((state) => {
+                state.isLoading = isLoading;
+            }),
+        setErrorMessage: (errorMessage) =>
+            set((state) => {
+                state.errorMessage = errorMessage;
+            }),
         addTitle: (payload) =>
             set((state) => {
                 if (payload.kind === "MAIN") {
-                    const mainId = String(state.mainTitleIds.length + 1);
+                    const mainId = getNextNumberId(state.mainTitleIds);
                     state.mainTitleIds.push(mainId);
                     state.mainTitlesById[mainId] = {
                         id: mainId,
@@ -174,8 +229,7 @@ export const useMainTitleItemStore = create<MainTitleItemStore>()(
                     return;
                 }
 
-                const parentMainTitleId = payload.parentMainTitleId;
-                const subId = `${parentMainTitleId}-${state.mainTitlesById[parentMainTitleId].subTitleIds.length + 1}`;
+                const subId = getNextSubTitleId(mainTitle);
                 mainTitle.subTitleIds.push(subId);
                 state.subTitlesById[subId] = {
                     id: subId,
@@ -193,8 +247,13 @@ export const useMainTitleItemStore = create<MainTitleItemStore>()(
 
                     mainTitle.subTitleIds.forEach((subId) => {
                         delete state.subTitlesById[subId];
+                        delete state.subImprovementsById[subId];
+                        delete state.subFeedbacksById[subId];
                     });
                     delete state.mainTitlesById[payload.id];
+                    delete state.improvementsById[payload.id];
+                    delete state.feedbacksById[payload.id];
+                    delete state.dateById[payload.id];
                     state.mainTitleIds = state.mainTitleIds.filter((mainId) => mainId !== payload.id);
                     return;
                 }
@@ -209,6 +268,8 @@ export const useMainTitleItemStore = create<MainTitleItemStore>()(
                     parent.subTitleIds = parent.subTitleIds.filter((subId) => subId !== payload.id);
                 }
                 delete state.subTitlesById[payload.id];
+                delete state.subImprovementsById[payload.id];
+                delete state.subFeedbacksById[payload.id];
             }),
         updateTitle: (payload) =>
             set((state) => {
@@ -225,12 +286,6 @@ export const useMainTitleItemStore = create<MainTitleItemStore>()(
                     subTitle.title = payload.title;
                 }
             }),
-    })),
-);
-
-export const useImprovementItemStore = create<ImprovementItemStore>()(
-    immer((set) => ({
-        ...initialImprovementState,
         setImprovement: (payload) =>
             set((state) => {
                 if (payload.kind === "MAIN") {
@@ -240,17 +295,89 @@ export const useImprovementItemStore = create<ImprovementItemStore>()(
 
                 state.subImprovementsById[payload.id] = { improvement: payload.improvement };
             }),
-        saveImprovement: (id: string, improvement: string) =>
+        saveImprovement: (id, improvement) =>
             set((state) => {
-                // id에 "-"가 있으면 SUB, 없으면 MAIN
-                const kind: "MAIN" | "SUB" = id.includes("-") ? "SUB" : "MAIN";
-
-                if (kind === "MAIN") {
-                    state.improvementsById[id] = { improvement };
+                if (!id) {
                     return;
                 }
 
-                state.subImprovementsById[id] = { improvement };
+                if (id.includes("-")) {
+                    state.subImprovementsById[id] = { improvement };
+                    return;
+                }
+
+                state.improvementsById[id] = { improvement };
             }),
+        getMemoirTitleData: () => {
+            const state = get();
+
+            return state.mainTitleIds.reduce<Record<string, MemoirItem>>((memoir, mainTitleId) => {
+                const mainTitle = state.mainTitlesById[mainTitleId];
+                if (!mainTitle) {
+                    return memoir;
+                }
+
+                const subMemoirTitles = mainTitle.subTitleIds.reduce<MemoirItem["subMemoirTitles"]>(
+                    (subTitles, subTitleId) => {
+                        const subTitle = state.subTitlesById[subTitleId];
+                        if (!subTitle) {
+                            return subTitles;
+                        }
+
+                        const idPrefix = `${mainTitleId}-`;
+                        const requestSubTitleId = subTitleId.startsWith(idPrefix)
+                            ? subTitleId.slice(idPrefix.length)
+                            : subTitleId;
+
+                        subTitles[requestSubTitleId] = { title: subTitle.title };
+                        return subTitles;
+                    },
+                    {},
+                );
+
+                memoir[mainTitleId] = {
+                    title: mainTitle.title,
+                    subMemoirTitles,
+                };
+                return memoir;
+            }, {});
+        },
+        getImprovementData: () => {
+            const state = get();
+
+            return state.mainTitleIds.reduce<Record<string, ImprovementItem>>(
+                (improvements, mainTitleId) => {
+                    const mainTitle = state.mainTitlesById[mainTitleId];
+                    if (!mainTitle) {
+                        return improvements;
+                    }
+
+                    const subImprovements = mainTitle.subTitleIds.reduce<ImprovementItem["subImprovements"]>(
+                        (subImprovementData, subTitleId) => {
+                            const idPrefix = `${mainTitleId}-`;
+                            const requestSubTitleId = subTitleId.startsWith(idPrefix)
+                                ? subTitleId.slice(idPrefix.length)
+                                : subTitleId;
+
+                            subImprovementData[requestSubTitleId] = {
+                                improvement: state.subImprovementsById[subTitleId]?.improvement ?? "",
+                            };
+                            return subImprovementData;
+                        },
+                        {},
+                    );
+
+                    improvements[mainTitleId] = {
+                        improvement: state.improvementsById[mainTitleId]?.improvement ?? "",
+                        subImprovements,
+                    };
+                    return improvements;
+                },
+                {},
+            );
+        },
     })),
 );
+
+export const useMemoirWriteStore = useMainTitleItemStore;
+export const useImprovementItemStore = useMainTitleItemStore;

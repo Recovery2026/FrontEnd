@@ -1,8 +1,76 @@
 import "./memoirWriteTitlePage.scss";
 import MemoirTitleList from "../write/memoirTitleList";
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { fetchMemoirByDate, writeMemoirTitle } from "../../../api/memoir.api";
+import { useMainTitleItemStore } from "../common/useMainTitleItemStore";
 
 const MemoirWriteTitlePage = () => {
+    const navigate = useNavigate();
+    const setMemoirWriteData = useMainTitleItemStore((state) => state.setMemoirWriteData);
+    const resetMemoirWriteData = useMainTitleItemStore((state) => state.resetMemoirWriteData);
+    const setLoading = useMainTitleItemStore((state) => state.setLoading);
+    const setErrorMessage = useMainTitleItemStore((state) => state.setErrorMessage);
+    const getMemoirTitleData = useMainTitleItemStore((state) => state.getMemoirTitleData);
+    const now = new Date();
+    const date = [
+        now.getFullYear(),
+        String(now.getMonth() + 1).padStart(2, "0"),
+        String(now.getDate()).padStart(2, "0"),
+    ].join("-");
+
+    useEffect(() => {
+        let isMounted = true;
+
+        async function fetchTodaysMemoir() {
+            resetMemoirWriteData();
+            setLoading(true);
+
+            try {
+                const memoirData = await fetchMemoirByDate(date, 5);
+                if (isMounted) {
+                    setMemoirWriteData(memoirData);
+                }
+            } catch (error) {
+                if (isMounted) {
+                    setErrorMessage(error instanceof Error ? error.message : "Failed to fetch memoir.");
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        }
+
+        void fetchTodaysMemoir();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [date, resetMemoirWriteData, setErrorMessage, setLoading, setMemoirWriteData]);
+
+    const improvementEditHandler = async () => {
+        setLoading(true);
+        setErrorMessage(null);
+        const titleData = getMemoirTitleData();
+
+        try {
+            await writeMemoirTitle({
+                userId: 5,
+                data: titleData,
+                date,
+            });
+
+            const savedMemoirData = await fetchMemoirByDate(date, 5);
+            setMemoirWriteData(savedMemoirData);
+            navigate("/memoir/improvement");
+        } catch (error) {
+            setErrorMessage(error instanceof Error ? error.message : "Failed to save memoir.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <section className={"memoir-section"}>
             <article className={"memoir-top"}>
@@ -22,9 +90,9 @@ const MemoirWriteTitlePage = () => {
             </article>
 
             <article className={"memoir-bottom"}>
-                <Link to="/memoir/improvement">
-                    <button className={"memoir-btn"}>개선점 입력하기</button>
-                </Link>
+                <button className={"memoir-btn"} onClick={() => void improvementEditHandler()}>
+                    개선점 입력하기
+                </button>
             </article>
         </section>
     );

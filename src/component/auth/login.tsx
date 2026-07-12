@@ -1,4 +1,5 @@
 import "./login.scss";
+import { Link } from "react-router-dom";
 
 const Login = () => {
     return (
@@ -18,7 +19,7 @@ const Login = () => {
                 </form>
 
                 <div className={"login-links"}>
-                    <a href={"#"}>가입하기</a>
+                    <Link to={"/signup"}><a>가입하기</a></Link>
                     <a href={"#"}>아이디/비밀번호 찾기</a>
                 </div>
 

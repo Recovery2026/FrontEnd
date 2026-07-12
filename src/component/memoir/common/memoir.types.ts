@@ -1,65 +1,102 @@
-type Mode = "VIEW" | "EDIT";
+export type Mode = "VIEW" | "EDIT";
 
-type MemoirTitleKind = "MAIN" | "SUB";
+export type MemoirTitleKind = "MAIN" | "SUB";
 
-type MemoirTitleBase = {
+export type MemoirTitleBase = {
     id: string;
     title: string;
+    mode?: Mode;
 };
 
-type MainTitleItem = MemoirTitleBase & {
+export type MainTitleItem = MemoirTitleBase & {
     subTitleIds: string[];
 };
 
-type SubTitleItem = MemoirTitleBase & {
+export type SubTitleItem = MemoirTitleBase & {
     parentMainTitleId: string;
 };
 
-type MemoirState = {
+export type MemoirState = {
     mainTitleIds: string[];
     mainTitlesById: Record<string, MainTitleItem>;
     subTitlesById: Record<string, SubTitleItem>;
     dateById: Record<string, string>;
 };
 
-type AddMainTitlePayload = {
+export type AddMainTitlePayload = {
     kind: "MAIN";
     title: string;
 };
 
-type AddSubTitlePayload = {
+export type AddSubTitlePayload = {
     kind: "SUB";
     title: string;
     parentMainTitleId: string;
 };
 
-type AddTitlePayload = AddMainTitlePayload | AddSubTitlePayload;
+export type AddTitlePayload = AddMainTitlePayload | AddSubTitlePayload;
 
-type TitleTargetPayload = {
+export type TitleTargetPayload = {
     kind: MemoirTitleKind;
     id: string;
 };
 
-type UpdateTitlePayload = TitleTargetPayload & {
+export type UpdateTitlePayload = TitleTargetPayload & {
     title: string;
 };
 
-type SetImprovementPayLoad = {
+export type SetImprovementPayLoad = {
     kind: MemoirTitleKind;
     id: string;
     improvement: string;
 };
 
-export type {
-    AddMainTitlePayload,
-    AddSubTitlePayload,
-    AddTitlePayload,
-    MainTitleItem,
-    MemoirState,
-    MemoirTitleKind,
-    Mode,
-    SubTitleItem,
-    TitleTargetPayload,
-    UpdateTitlePayload,
-    SetImprovementPayLoad,
+export type SubFeedback = {
+    feedback: string;
 };
+
+export type FeedbackItem = {
+    feedback: string;
+    subFeedback: Record<string, SubFeedback>;
+};
+
+export type SubImprovement = {
+    improvement: string;
+};
+
+export type ImprovementItem = {
+    improvement: string;
+    subImprovements: Record<string, SubImprovement>;
+};
+
+export type SubMemoirTitle = {
+    title: string;
+};
+
+export type MemoirItem = {
+    title: string;
+    subMemoirTitles: Record<string, SubMemoirTitle>;
+};
+
+export type MemoirResponse = {
+    id?: number;
+    date?: string;
+    feedback: Record<string, FeedbackItem>;
+    improvement: Record<string, ImprovementItem>;
+    memoir: Record<string, MemoirItem>;
+};
+
+export type ApiMemoirItem = {
+    id?: number;
+    date?: string;
+    feedback?: Record<string, FeedbackItem>;
+    improvement?: Record<string, ImprovementItem>;
+    memoir: Record<string, MemoirItem>;
+};
+
+export type ApiMemoirResponse =
+    | ApiMemoirItem
+    | {
+          list: ApiMemoirItem[];
+          total?: number;
+      };

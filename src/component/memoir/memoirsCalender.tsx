@@ -3,23 +3,10 @@ import { useEffect, useState } from "react";
 import Calendar from "react-calendar";
 import { format, isAfter } from "date-fns";
 import { ko } from "date-fns/locale";
-import { type MainTitleItem } from "./common/memoir.types";
 import MemoirTitleList from "./write/memoirTitleList.tsx";
+import { fetchMemoirByDate } from "../../api/memoir.api.ts";
+import { useMainTitleItemStore } from "./common/useMainTitleItemStore.ts";
 
-const MOCK_DATA: MainTitleItem[] = [
-    {
-        id: "1",
-        title: "Main Title 1",
-        mode: "VIEW",
-        subTitleIds: [],
-    },
-    {
-        id: "2",
-        title: "Main Title 2",
-        mode: "VIEW",
-        subTitleIds: [],
-    },
-];
 const MOCK_DATE: string[] = ["2026-03-09", "2026-03-08"];
 
 const toDateKey = (date: Date) => {
@@ -28,7 +15,9 @@ const toDateKey = (date: Date) => {
 
 const MemoirsCalender = () => {
     const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
-    const [data, setData] = useState<MainTitleItem[] | null>(null);
+    const [hasData, setHasData] = useState(false);
+    const setMemoirWriteData = useMainTitleItemStore((state) => state.setMemoirWriteData);
+    const resetMemoirWriteData = useMainTitleItemStore((state) => state.resetMemoirWriteData);
 
     const handleDateChange = (value: unknown) => {
         if (value instanceof Date) {
@@ -43,13 +32,16 @@ const MemoirsCalender = () => {
     };
 
     const fetchData = async (date: Date) => {
-        // TODO: 백엔드 구축 후 date에 따른 호출로 변경
         try {
-            await fetch(`/?date=${toDateKey(date)}`);
+            const memoirData = await fetchMemoirByDate(toDateKey(date), 5);
+            const memoir = "list" in memoirData ? memoirData.list[0]?.memoir : memoirData.memoir;
+
+            setMemoirWriteData(memoirData);
+            setHasData(Boolean(memoir && Object.keys(memoir).length));
         } catch {
-            // 에러 처리
+            resetMemoirWriteData();
+            setHasData(false);
         }
-        setData(MOCK_DATA || null);
     };
 
     function isFuture(date: Date) {
@@ -85,7 +77,7 @@ const MemoirsCalender = () => {
                 />
                 {selectedDate && (
                     <div className="data-display">
-                        {data ? (
+                        {hasData ? (
                             <>
                                 <div className={"memoir-content"}>
                                     <MemoirTitleList editable={false} width={"100%"} />
