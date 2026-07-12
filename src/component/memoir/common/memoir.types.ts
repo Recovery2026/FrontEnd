@@ -95,7 +95,7 @@ export type ApiMemoirItem = {
 };
 
 export type ApiMemoirResponse =
-    | MemoirResponse
+    | ApiMemoirItem
     | {
           list: ApiMemoirItem[];
           total?: number;
